@@ -1,0 +1,43 @@
+{
+    "categories": [
+        "Daily",
+        "Work",
+        "Education"
+    ],
+    "languages": [
+        "Azerbaijani",
+        "English",
+        "Russian"
+    ],
+    "translations": {
+        "Azerbaijani": {
+            "English": {
+                "Daily": {
+                    "hello": "salam",
+                    "edijijj": "jij"
+                },
+                "Education": {
+                    "Muellim": "Teacher"
+                }
+            }
+        },
+        "Russian": {
+            "Azerbaijani": {
+                "Daily": {
+                    "salam": "privet"
+                }
+            },
+            "English": {
+                "Daily": {
+                    "privet": "hello",
+                    "ochen": "nice",
+                    "bolshoy": "a lot of"
+                }, 
+                "Education": {
+                    "mallim": "instructor",
+                    "mashina": "car"
+                }
+            }
+        }
+    }
+}
