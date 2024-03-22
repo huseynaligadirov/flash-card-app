@@ -6,14 +6,16 @@ from language import Language
 from save import DataManager
 from category import Category
 from translations import Translations
-
+from quiz import Quiz
+from PyQt5.QtGui import QFont
     
     
 class MainWindow(QMainWindow):
     main_data = {
         "categories": [],
         "languages": [],
-        "translations": {}
+        "translations": {},
+        "progress": {}
     }
     
     filtered_translations = {}
@@ -22,12 +24,12 @@ class MainWindow(QMainWindow):
         
         file_name = 'files/data.json'  
         def createFile ():
-            with open('files/data.json', 'w') as json_file:
+            with open('files/data.json', 'w', encoding="utf-8") as json_file:
                 json.dump(self.main_data, json_file)
 
         if os.path.exists(file_name):      
             try:
-                with open(file_name, 'r') as json_file:
+                with open(file_name, 'r', encoding="utf-8") as json_file:
                     self.main_data = json.load(json_file)
             except:
                 createFile()
@@ -49,6 +51,8 @@ class MainWindow(QMainWindow):
         self.language_manager = Language(self.main_data)
         self.category_manager = Category(self.main_data)
         self.translation_manager = Translations(self.main_data)
+        self.quiz_manager = Quiz(self.main_data)
+
         
         #source language        
         self.source_language_label = QLabel("Source languages:")
@@ -88,6 +92,8 @@ class MainWindow(QMainWindow):
         self.right_layout.addWidget(self.add_category_button)         
         
         self.quiz_button = QPushButton("Start Quiz")
+        self.right_layout.addWidget(self.quiz_button)
+        self.quiz_button.clicked.connect(lambda: self.checkSelected())
 
         #language_load
         self.saved_langs = self.main_data['languages']
@@ -106,8 +112,11 @@ class MainWindow(QMainWindow):
         self.add_category_button.clicked.connect(lambda: self.category_manager.add_new_category_dialog(self.category_list))
         self.add_translation_button.clicked.connect(lambda: self.translation_manager.add_new_translation_dialog(self.translations_list) )
         
+        self.target_language_list.itemClicked.connect(lambda: self.filter_for_target())
         self.source_language_list.itemClicked.connect(lambda: self.filter_for_source())
-    
+        self.source_language_list.setCurrentRow(0)
+        self.filter_for_source()
+
     def filter_for_source(self):
         current = self.source_language_list.currentItem().text()
         
@@ -119,7 +128,20 @@ class MainWindow(QMainWindow):
             self.translations_list.clear()
             
     def filter_for_target(self):
-        current = self.target_language_list.currentItem().text()  
+        translations = self.main_data['translations']
+        selected_source = self.source_language_list.currentItem().text()
+        selected_target = self.target_language_list.currentItem().text() 
+        self.translations_list.clear()
+        if(selected_source and selected_target):
+            if selected_source in translations:
+                if selected_target in translations[selected_source]:
+                    for category in translations[selected_source][selected_target]:
+                        for elem in translations[selected_source][selected_target][category]:
+                            self.translations_list.addItem(f"{elem} - {translations[selected_source][selected_target][category][elem]}")
+                    
+        
+                
+            
     def syncTranslations(self, loaded_list):
         self.translations_list.clear()
         self.filtered_translations = {}
@@ -128,9 +150,20 @@ class MainWindow(QMainWindow):
                 for categ in loaded_list[source][target]:
                     for word in loaded_list[source][target][categ]:
                         self.translations_list.addItem(f"{word} - {loaded_list[source][target][categ][word]}")
+                        
+    def checkSelected(self):
+        if(self.source_language_list.currentItem() and self.target_language_list.currentItem() and self.category_list.currentItem()):
+            self.quiz_manager.generate_quiz(self.source_language_list.currentItem().text(), self.target_language_list.currentItem().text(), self.category_list.currentItem().text())
+        else:
+            pass
+        
+    
+        
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())  
