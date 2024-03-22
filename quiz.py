@@ -13,7 +13,7 @@ class Quiz():
         dialog = QDialog()
         dialog.setWindowTitle("Quiz")
         layout = QVBoxLayout(dialog)
-
+        self.vocab = {}
         if source in self.data['translations']:
             if target in self.data['translations'][source]:
                 if category in self.data['translations'][source][target]:
@@ -34,7 +34,7 @@ class Quiz():
         self.question_count = 10
         if(len(self.vocab) < 5):
             self.alert()
-            dialog.accept()            
+            return dialog.accept()            
         elif(len(self.vocab)>=5 and len(self.vocab) <=10):
             self.question_count = 5
         else:
@@ -141,6 +141,7 @@ class Quiz():
         dialog.exec_()
     
     def alert (self):
+        
         dialog = QDialog()
         dialog.setWindowTitle("Alert")
         layout = QVBoxLayout(dialog)
@@ -157,4 +158,4 @@ class Quiz():
 
 
         
-        
+
