@@ -54,7 +54,7 @@ class Quiz():
         pass_button = QPushButton("Pass")
         layout.addWidget(submit_button)
         layout.addWidget(pass_button)
-        submit_button.clicked.connect(lambda: self.checkQuestion(self.mixed_questions[self.current_question], self.answer_input.text(), dialog) )
+        submit_button.clicked.connect(lambda: self.checkQuestion(self.mixed_questions[self.current_question], self.answer_input.text(), dialog, self.source, self.target, self.category) )
 
         
 
@@ -62,16 +62,21 @@ class Quiz():
 
         
         dialog.exec_()
+    
+    def findAnswer (self, data, source, target, category, word):
+        return data['translations'][source][target][category][word]
         
-    def checkQuestion (self, question, answer , dialog):
-        if(self.current_question < 9):
-            if(answer.lower() == self.vocab[question].lower()):
+    def checkQuestion (self, question, answer , dialog, source, target, category):
+        correct_answer = self.findAnswer(self.data, source, target, category, question)
+        
+        if(self.current_question < self.question_count-1):
+            if(answer.lower() == correct_answer.lower()):
                 self.correct_ans +=1
             else:
                 pass
             self.current_question +=1
             self.Next()
-        elif self.current_question == 9:
+        elif self.current_question == self.question_count-1:
             if(answer.lower() == self.vocab[question].lower()):
                 self.correct_ans +=1
             else:

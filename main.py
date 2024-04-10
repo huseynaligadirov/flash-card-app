@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
         self.left_layout.addWidget(self.source_language_label)
         self.left_layout.addWidget(self.source_language_list)
         
-        #source language    
+        #target language    
         self.target_language_label = QLabel("Target languages:")
         self.target_language_list = QListWidget()
         self.left_layout.addWidget(self.target_language_label)
@@ -112,32 +112,30 @@ class MainWindow(QMainWindow):
         self.add_category_button.clicked.connect(lambda: self.category_manager.add_new_category_dialog(self.category_list))
         self.add_translation_button.clicked.connect(lambda: self.translation_manager.add_new_translation_dialog(self.translations_list) )
         
-        self.target_language_list.itemClicked.connect(lambda: self.filter_for_target())
-        self.source_language_list.itemClicked.connect(lambda: self.filter_for_source())
         self.source_language_list.setCurrentRow(0)
-        self.filter_for_source()
+        # self.filter_for_source()
 
-    def filter_for_source(self):
-        current = self.source_language_list.currentItem().text()
+    # def filter_for_source(self):
+    #     current = self.source_language_list.currentItem().text()
         
-        if current in self.main_data['translations']:
-            self.filtered_translations[current] = self.main_data['translations'][current]
-            self.syncTranslations(self.filtered_translations)
-        else:
-            self.filtered_translations = {}
-            self.translations_list.clear()
+    #     if current in self.main_data['translations']:
+    #         self.filtered_translations[current] = self.main_data['translations'][current]
+    #         self.syncTranslations(self.filtered_translations)
+    #     else:
+    #         self.filtered_translations = {}
+    #         self.translations_list.clear()
             
-    def filter_for_target(self):
-        translations = self.main_data['translations']
-        selected_source = self.source_language_list.currentItem().text()
-        selected_target = self.target_language_list.currentItem().text() 
-        self.translations_list.clear()
-        if(selected_source and selected_target):
-            if selected_source in translations:
-                if selected_target in translations[selected_source]:
-                    for category in translations[selected_source][selected_target]:
-                        for elem in translations[selected_source][selected_target][category]:
-                            self.translations_list.addItem(f"{elem} - {translations[selected_source][selected_target][category][elem]}")
+    # def filter_for_target(self):
+    #     translations = self.main_data['translations']
+    #     selected_source = self.source_language_list.currentItem().text()
+    #     selected_target = self.target_language_list.currentItem().text() 
+    #     self.translations_list.clear()
+    #     if(selected_source and selected_target):
+    #         if selected_source in translations:
+    #             if selected_target in translations[selected_source]:
+    #                 for category in translations[selected_source][selected_target]:
+    #                     for elem in translations[selected_source][selected_target][category]:
+    #                         self.translations_list.addItem(f"{elem} - {translations[selected_source][selected_target][category][elem]}")
                     
         
                 
