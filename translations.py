@@ -1,29 +1,28 @@
 # translation.py
 import json
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QListWidget, QComboBox
-from save import DataManager
+from save import data_manager
+from category import Category
+from alert import AlertDialog
 class Translations:
     translations = {}
-    
+
     def __init__(self, main_data):
         self.data = main_data
         self.translations = main_data['translations']
-        self.data_manager = DataManager()
+        self.alertManager = AlertDialog()
+        self.category_manager = Category(main_data)
 
-    def add_translation(self, translation):
-        self.translations.append(translation)
-        
-    def save_to_file(self):
-        with open('trans.json', 'w') as file:
-            json.dump(self.translations, 'trans.json')
-                
     def remove_translation(self, index):
         del self.translations[index]
 
     def list_translations(self):
         return self.translations
 
-    def add_new_translation_dialog(self, translations_list):
+    def add_new_translation_dialog(self, source, target, category, setTarget):
+        if not source or not target:
+            self.alertManager.alert('Source and target languages must be selected!')
+            return
         dialog = QDialog()
         dialog.setWindowTitle("Add Translation")
         layout = QVBoxLayout(dialog)
@@ -31,75 +30,71 @@ class Translations:
         self.word_input = QLineEdit(dialog)
         translation_label = QLabel("Translation:", dialog)
         self.translation_input = QLineEdit(dialog)
-        source_language_label = QLabel("Source Language:", dialog)
-        self.source_language_input = QComboBox(dialog)
-        self.source_language_input.addItems(self.data['languages'])
-        target_language_label = QLabel("Target Language:", dialog)
-        self.target_language_input = QComboBox(dialog)
-        self.target_language_input.addItems(self.data['languages'])
         category_label = QLabel("Category:", dialog)
-        self.category_input = QComboBox(dialog)
-        self.category_input.addItems(self.data['categories'])
+        self.category_input = QLineEdit()
+        self.category_input.setText(category)
 
         layout.addWidget(word_label)
         layout.addWidget(self.word_input)
         layout.addWidget(translation_label)
         layout.addWidget(self.translation_input)
-        layout.addWidget(source_language_label)
-        layout.addWidget(self.source_language_input)
-        layout.addWidget(target_language_label)
-        layout.addWidget(self.target_language_input)
         layout.addWidget(category_label)
         layout.addWidget(self.category_input)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
-        buttons.accepted.connect(lambda: self.add_new_translation(translations_list, dialog))
+        buttons.accepted.connect(lambda: self.add_new_translation(source, target, self.word_input.text().strip().capitalize(), self.translation_input.text().strip().capitalize(), self.category_input.text().strip().capitalize(), dialog, setTarget))
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
 
         dialog.exec_()
 
-    def add_new_translation(self, translations_list, dialog):
-        word = self.word_input.text()
-        translation = self.translation_input.text()
-        source_language = self.source_language_input.currentText()
-        target_language = self.target_language_input.currentText()
-        category = self.category_input.currentText()
+    def add_new_translation(self, source, target, word, translation, category, dialog, setTarget ):        
+        if not word or not translation:
+            self.alertManager.alert('Input can not be empty!')
+            return
+        if ' | ' in word or ' | ' in translation:
+            self.alertManager.alert('Pattern is not allowed!')
+            return
+        if category in self.data['translations'][source][target]:
+            if word in self.data['translations'][source][target][category]:
+                self.alertManager.alert('This word already exists')
+                return
+        else:
+            if (category == ''):
+                self.alertManager.alert('Input can not be empty')
+                return
+            self.category_manager.add_category(category, source, target, dialog, setTarget)
+        
 
-        translation_data = {
-            target_language: {
-                category: {
-                    word: translation
-                }
-            }
-        }
-        
-               
-        if source_language in self.translations: 
-            pass
-        else:
-            self.translations[source_language] = {}     
-        
-        
-        if target_language in self.translations[source_language]:
-            if category in self.translations[source_language][target_language]:
-                if word in self.translations[source_language][target_language][category]:
-                    pass
-                else:
-                    self.translations[source_language][target_language][category][word] = translation
-                    translations_list.addItem(f"{word} - {translation}")
-            else:
-                self.translations[source_language][target_language][category] = translation_data[target_language][category]
-                translations_list.addItem(f"{word} - {translation}")
-                
-        else:
-            self.translations[source_language] = translation_data
-            translations_list.addItem(f"{word} - {translation}")
-            
-        print(self.translations)
-        self.data['translations'] = self.translations
-        self.data_manager.saveData(self.data)
+        self.data['translations'][source][target][category][word] = translation
+        setTarget()
+        data_manager.saveData(self.data)
         dialog.accept()
+        
+    def remove_translation_modal(self, source, target, category, word, sync):
+        if not source or not target or not category or not word:
+            self.alertManager.alert("Source language, target language and category must be selected to delete specific translation")
+            return
+        dialog = QDialog()
+        dialog.setWindowTitle("Remove selected translation")
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(f"Are you sure to remove selected translation?"))
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
+        buttons.accepted.connect(lambda: self.remove_translation(source, target, category, word, dialog, sync))
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        dialog.exec_()
+        
+    def remove_translation(self, source_lang, target_lang,category, word, dialog, sync):
+        del self.data['translations'][source_lang][target_lang][category][word.split(' | ')[0]]
+        data_manager.saveData(self.data)
+        sync()
+        dialog.accept()
+        
+        
+            
+            
+        
         
         
        
